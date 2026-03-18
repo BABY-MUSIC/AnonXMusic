@@ -1,0 +1,10 @@
+envn/
+venv/
+__pycache__/
+*.pyc
+*.log
+.env
+*.session
+log.txt
+cache/
+downloads/
