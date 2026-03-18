@@ -1,5 +1,3 @@
-import json
-
 from anony import config, db, lang
 from anony.api.client import client
 from anony.helpers import buttons, utils
@@ -25,25 +23,29 @@ async def start_cmd(message):
                 print("Blocked user")
             return
 
+        # ---------- LANG ----------
+
+        L = lang
+
         # ---------- TEXT ----------
 
         if private:
 
-            text = message["lang"]["start_pm"].format(
+            text = L["start_pm"].format(
                 message["from"]["first_name"],
                 config.BOT_NAME,
             )
 
         else:
 
-            text = message["lang"]["start_gp"].format(
+            text = L["start_gp"].format(
                 config.BOT_NAME,
             )
 
         # ---------- BUTTON ----------
 
         markup = buttons.start_key(
-            message["lang"],
+            L,
             private,
         )
 
@@ -61,21 +63,28 @@ async def start_cmd(message):
 
         # ---------- DB ----------
 
-        if private:
+        try:
 
-            if not await db.is_user(user_id):
+            if private:
 
-                await db.add_user(user_id)
+                if not await db.is_user(user_id):
 
-                await utils.send_log(message)
+                    await db.add_user(user_id)
 
-        else:
+                    await utils.send_log(message)
 
-            if not await db.is_chat(chat_id):
+            else:
 
-                await db.add_chat(chat_id)
+                if not await db.is_chat(chat_id):
 
-                await utils.send_log(message, True)
+                    await db.add_chat(chat_id)
+
+                    await utils.send_log(message, True)
+
+        except Exception as e:
+
+            if config.DEBUG:
+                print("DB ERROR:", e)
 
     except Exception as e:
 
