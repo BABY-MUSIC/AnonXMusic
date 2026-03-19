@@ -1,6 +1,7 @@
 from anony import config
 from anony.api.client import client
-from anony.helpers import buttons
+
+from anony.core.player import play
 
 
 # =========================
@@ -65,20 +66,25 @@ async def play_cmd(message):
             },
         )
 
-        # ---------- TODO PLAYER ----------
+        # ---------- PLAYER ----------
 
-        # future:
-        # search
-        # download
-        # stream
-        # queue
+        data, first = await play(chat_id, query)
+
+        title = data.get("title", "Unknown")
+
+        if first:
+            text = f"Playing:\n{title}"
+        else:
+            text = f"Added to queue:\n{title}"
+
+        # ---------- EDIT ----------
 
         await client.request(
             "editMessageText",
             {
                 "chat_id": chat_id,
                 "message_id": msg["result"]["message_id"],
-                "text": f"Added to queue:\n{query}",
+                "text": text,
             },
         )
 
