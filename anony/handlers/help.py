@@ -158,7 +158,14 @@ async def callback(cb):
 
         if data.startswith("help "):
 
-            text = L["help_menu"]
+            name = data.split()[1]   # admins / auth / sudo / play
+
+            key = f"help_{name}"     # help_admins
+
+            text = L.get(
+                key,
+                "No help found"
+            )
 
             markup = buttons.help_markup(
                 L,
@@ -167,7 +174,7 @@ async def callback(cb):
 
             await client.request(
                 "editMessageCaption",
-                {
+                        {
                     "chat_id": chat_id,
                     "message_id": msg_id,
                     "caption": text,
