@@ -30,16 +30,16 @@ class Router:
             print(update)
 
         if "message" in update:
-
             await self.handle_message(update["message"])
+            return
 
-        elif "edited_message" in update:
-
+        if "edited_message" in update:
             await self.handle_message(update["edited_message"])
+            return
 
-        elif "callback_query" in update:
-
+        if "callback_query" in update:
             await self.handle_callback(update["callback_query"])
+            return
 
 
     # =========================
@@ -120,21 +120,47 @@ class Router:
 
         data = cb.get("data", "")
 
+        if not data:
+            return
+
+        # ---------- CONTROLS ----------
+
         if data.startswith("controls"):
             await controls.callback(cb)
             return
+
+        # ---------- HELP ----------
 
         if data.startswith("help"):
             await help.callback(cb)
             return
 
+        # ---------- LANGUAGE ----------
+
         if data.startswith("lang"):
             await language.callback(cb)
             return
 
+        # ---------- SETTINGS ----------
+
         if data.startswith("settings"):
             await settings.callback(cb)
             return
+
+        # ---------- QUEUE ----------
+
+        if data.startswith("queue"):
+            await queue.callback(cb)
+            return
+
+        # ---------- PLAY ----------
+
+        if data.startswith("play"):
+            await play.callback(cb)
+            return
+
+        if self.debug:
+            print("Unknown callback:", data)
 
 
 router = Router()
