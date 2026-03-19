@@ -66,16 +66,23 @@ def help_markup(_lang, back=False):
             "inline_keyboard": rows
         }
 
+    # BACK PAGE
+
     if back:
 
         rows = [
             [
-                btn(_lang["back"], "help back"),
-                btn(_lang["close"], "help close"),
-            ]
+                btn("Back", "help back"),
+                btn("Close", "help close"),
+            ],
+            [
+                btn("Home", "help home"),
+            ],
         ]
 
         return build(rows)
+
+    # CATEGORY PAGE
 
     cbs = [
         "admins",
@@ -104,5 +111,14 @@ def help_markup(_lang, back=False):
         buttons[i:i+3]
         for i in range(0, len(buttons), 3)
     ]
+
+    # last row home
+
+    rows.append(
+        [
+            btn("Home", "help home"),
+            btn("Close", "help close"),
+        ]
+    )
 
     return build(rows)
