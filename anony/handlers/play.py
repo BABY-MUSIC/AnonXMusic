@@ -1,7 +1,10 @@
 from anony import config
 from anony.api.client import client
 
-from anony.core.player import play
+from anony.core.youtube import (
+    search,
+    download_song,
+)
 
 
 # =========================
@@ -66,29 +69,50 @@ async def play_cmd(message):
             },
         )
 
-        # ---------- PLAYER ----------
+        msg_id = msg["result"]["message_id"]
 
-        data, first = await play(chat_id, query)
+        # =========================
+        # SEARCH
+        # =========================
 
-        title = data.get("title", "Unknown")
+        data = await search(query)
 
-        if first:
-            text = f"Playing:\n{title}"
-        else:
-            text = f"Added to queue:\n{title}"
+        title = data.get("title")
+        url = data.get("url")
 
-        # ---------- EDIT ----------
+        if config.DEBUG:
+            print("FOUND:", title)
+
+        # =========================
+        # DOWNLOAD
+        # =========================
+
+        stream = await download_song(url)
+
+        if config.DEBUG:
+            print("STREAM:", stream)
+
+        # =========================
+        # RESULT
+        # =========================
 
         await client.request(
             "editMessageText",
             {
                 "chat_id": chat_id,
-                "message_id": msg["result"]["message_id"],
-                "text": text,
+                "message_id": msg_id,
+                "text": f"Added to queue\n\n{title}",
             },
         )
 
     except Exception as e:
 
-        if config.DEBUG:
-            print("PLAY ERROR:", e)
+        print("PLAY ERROR:", e)
+
+        await client.request(
+            "sendMessage",
+            {
+                "chat_id": chat_id,
+                "text": f"Error:\n{e}",
+            },
+        )
