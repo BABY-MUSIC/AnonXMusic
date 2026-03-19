@@ -17,8 +17,6 @@ async def help_cmd(message):
 
         chat_id = message["chat"]["id"]
 
-        private = message["chat"]["type"] == "private"
-
         # ---------- LANG ----------
 
         L = lang
@@ -71,9 +69,9 @@ async def callback(cb):
 
         L = lang
 
-        # -----------------
+        # ======================
         # CLOSE
-        # -----------------
+        # ======================
 
         if data == "help close":
 
@@ -86,9 +84,9 @@ async def callback(cb):
             )
             return
 
-        # -----------------
-        # BACK
-        # -----------------
+        # ======================
+        # BACK → CATEGORY PAGE
+        # ======================
 
         if data == "help back":
 
@@ -108,13 +106,35 @@ async def callback(cb):
             )
             return
 
-        # -----------------
-        # OTHER PAGE
-        # -----------------
+        # ======================
+        # MAIN HELP CLICK
+        # ======================
 
-        if data.startswith("help"):
+        if data == "help":
 
             text = L["help_menu"]
+
+            markup = buttons.help_markup(L)
+
+            await client.request(
+                "editMessageCaption",
+                {
+                    "chat_id": chat_id,
+                    "message_id": msg_id,
+                    "caption": text,
+                    "parse_mode": "HTML",
+                    "reply_markup": markup,
+                },
+            )
+            return
+
+        # ======================
+        # CATEGORY CLICK
+        # ======================
+
+        if data.startswith("help "):
+
+            text = L["help_page"]
 
             markup = buttons.help_markup(
                 L,
