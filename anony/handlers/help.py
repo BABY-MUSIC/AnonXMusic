@@ -1,3 +1,5 @@
+import json
+
 from anony import config
 from anony.api.client import client
 from anony.helpers import buttons
@@ -30,7 +32,7 @@ async def help_cmd(message):
             {
                 "chat_id": chat_id,
                 "text": text,
-                "reply_markup": markup,
+                "reply_markup": json.dumps(markup),   # ✅ FIX
             },
         )
 
@@ -56,8 +58,6 @@ async def callback(cb):
         chat_id = cb["message"]["chat"]["id"]
         msg_id = cb["message"]["message_id"]
 
-        text = cb["message"]["text"]
-
         if data == "help close":
 
             await client.request(
@@ -81,7 +81,7 @@ async def callback(cb):
                 {
                     "chat_id": chat_id,
                     "message_id": msg_id,
-                    "reply_markup": markup,
+                    "reply_markup": json.dumps(markup),  # ✅ FIX
                 },
             )
 
@@ -99,7 +99,7 @@ async def callback(cb):
             {
                 "chat_id": chat_id,
                 "message_id": msg_id,
-                "reply_markup": markup,
+                "reply_markup": json.dumps(markup),  # ✅ FIX
             },
         )
 
