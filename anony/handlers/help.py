@@ -17,19 +17,11 @@ async def help_cmd(message):
 
         chat_id = message["chat"]["id"]
 
-        # ---------- LANG ----------
-
         L = lang
-
-        # ---------- TEXT ----------
 
         text = L["help_menu"]
 
-        # ---------- BUTTON ----------
-
         markup = buttons.help_markup(L)
-
-        # ---------- SEND ----------
 
         await client.request(
             "sendPhoto",
@@ -65,9 +57,41 @@ async def callback(cb):
         chat_id = cb["message"]["chat"]["id"]
         msg_id = cb["message"]["message_id"]
 
-        # ---------- LANG ----------
-
         L = lang
+
+        # ======================
+        # HOME → START PAGE
+        # ======================
+
+        if data == "help home":
+
+            name = cb["from"]["first_name"]
+
+            text = L["start_pm"].format(
+                name,
+                config.BOT_NAME,
+            )
+
+            markup = buttons.start_key(
+                L,
+                True,
+            )
+
+            await client.request(
+                "editMessageMedia",
+                {
+                    "chat_id": chat_id,
+                    "message_id": msg_id,
+                    "media": {
+                        "type": "photo",
+                        "media": config.START_IMG,
+                        "caption": text,
+                        "parse_mode": "HTML",
+                    },
+                    "reply_markup": markup,
+                },
+            )
+            return
 
         # ======================
         # CLOSE
@@ -85,7 +109,7 @@ async def callback(cb):
             return
 
         # ======================
-        # BACK → CATEGORY PAGE
+        # BACK
         # ======================
 
         if data == "help back":
@@ -107,7 +131,7 @@ async def callback(cb):
             return
 
         # ======================
-        # MAIN HELP CLICK
+        # HELP CLICK
         # ======================
 
         if data == "help":
