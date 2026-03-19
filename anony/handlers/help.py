@@ -158,7 +158,7 @@ async def callback(cb):
 
         if data.startswith("help "):
 
-            text = L["help_page"]
+            text = L["help_menu"]
 
             markup = buttons.help_markup(
                 L,
