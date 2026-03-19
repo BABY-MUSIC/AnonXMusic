@@ -32,7 +32,7 @@ async def help_cmd(message):
             {
                 "chat_id": chat_id,
                 "text": text,
-                "reply_markup": json.dumps(markup),   # ✅ FIX
+                "reply_markup": json.dumps(markup),
             },
         )
 
@@ -58,6 +58,10 @@ async def callback(cb):
         chat_id = cb["message"]["chat"]["id"]
         msg_id = cb["message"]["message_id"]
 
+        L = cb["lang"]
+
+        # CLOSE
+
         if data == "help close":
 
             await client.request(
@@ -67,39 +71,43 @@ async def callback(cb):
                     "message_id": msg_id,
                 },
             )
-
             return
+
+        # BACK
 
         if data == "help back":
 
-            markup = buttons.help_markup(
-                cb["lang"]
-            )
+            text = L["help_menu"]
+
+            markup = buttons.help_markup(L)
 
             await client.request(
-                "editMessageReplyMarkup",
+                "editMessageCaption",
                 {
                     "chat_id": chat_id,
                     "message_id": msg_id,
-                    "reply_markup": json.dumps(markup),  # ✅ FIX
+                    "caption": text,
+                    "reply_markup": json.dumps(markup),
                 },
             )
-
             return
 
-        # other help pages
+        # OTHER HELP PAGE
+
+        text = L["help_page"]
 
         markup = buttons.help_markup(
-            cb["lang"],
+            L,
             back=True,
         )
 
         await client.request(
-            "editMessageReplyMarkup",
+            "editMessageCaption",
             {
                 "chat_id": chat_id,
                 "message_id": msg_id,
-                "reply_markup": json.dumps(markup),  # ✅ FIX
+                "caption": text,
+                "reply_markup": json.dumps(markup),
             },
         )
 
