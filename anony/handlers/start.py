@@ -57,6 +57,7 @@ async def start_cmd(message):
                 "chat_id": chat_id,
                 "photo": config.START_IMG,
                 "caption": text,
+                "parse_mode": "HTML",   # ✅ FIX
                 "reply_markup": markup,
             },
         )
