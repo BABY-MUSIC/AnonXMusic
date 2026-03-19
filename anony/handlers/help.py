@@ -1,6 +1,4 @@
-import json
-
-from anony import config
+from anony import config, lang
 from anony.api.client import client
 from anony.helpers import buttons
 
@@ -13,26 +11,36 @@ async def help_cmd(message):
 
     if config.DEBUG:
         print("\n=== HELP CMD ===")
+        print(message)
 
     try:
 
-        if message["chat"]["type"] != "private":
-            return
-
         chat_id = message["chat"]["id"]
 
-        L = message["lang"]
+        private = message["chat"]["type"] == "private"
+
+        # ---------- LANG ----------
+
+        L = lang
+
+        # ---------- TEXT ----------
 
         text = L["help_menu"]
 
+        # ---------- BUTTON ----------
+
         markup = buttons.help_markup(L)
 
+        # ---------- SEND ----------
+
         await client.request(
-            "sendMessage",
+            "sendPhoto",
             {
                 "chat_id": chat_id,
-                "text": text,
-                "reply_markup": json.dumps(markup),
+                "photo": config.START_IMG,
+                "caption": text,
+                "parse_mode": "HTML",
+                "reply_markup": markup,
             },
         )
 
@@ -50,6 +58,7 @@ async def callback(cb):
 
     if config.DEBUG:
         print("\n=== HELP CALLBACK ===")
+        print(cb)
 
     try:
 
@@ -58,7 +67,9 @@ async def callback(cb):
         chat_id = cb["message"]["chat"]["id"]
         msg_id = cb["message"]["message_id"]
 
-        L = cb["lang"]
+        # ---------- LANG ----------
+
+        L = lang
 
         # -----------------
         # CLOSE
@@ -91,13 +102,14 @@ async def callback(cb):
                     "chat_id": chat_id,
                     "message_id": msg_id,
                     "caption": text,
-                    "reply_markup": json.dumps(markup),
+                    "parse_mode": "HTML",
+                    "reply_markup": markup,
                 },
             )
             return
 
         # -----------------
-        # OTHER HELP PAGE
+        # OTHER PAGE
         # -----------------
 
         if data.startswith("help"):
@@ -115,7 +127,8 @@ async def callback(cb):
                     "chat_id": chat_id,
                     "message_id": msg_id,
                     "caption": text,
-                    "reply_markup": json.dumps(markup),
+                    "parse_mode": "HTML",
+                    "reply_markup": markup,
                 },
             )
             return
