@@ -21,11 +21,11 @@ async def help_cmd(message):
 
         chat_id = message["chat"]["id"]
 
-        text = message["lang"]["help_menu"]
+        L = message["lang"]
 
-        markup = buttons.help_markup(
-            message["lang"]
-        )
+        text = L["help_menu"]
+
+        markup = buttons.help_markup(L)
 
         await client.request(
             "sendMessage",
@@ -60,7 +60,9 @@ async def callback(cb):
 
         L = cb["lang"]
 
+        # -----------------
         # CLOSE
+        # -----------------
 
         if data == "help close":
 
@@ -73,7 +75,9 @@ async def callback(cb):
             )
             return
 
+        # -----------------
         # BACK
+        # -----------------
 
         if data == "help back":
 
@@ -92,24 +96,29 @@ async def callback(cb):
             )
             return
 
+        # -----------------
         # OTHER HELP PAGE
+        # -----------------
 
-        text = L["help_page"]
+        if data.startswith("help"):
 
-        markup = buttons.help_markup(
-            L,
-            back=True,
-        )
+            text = L["help_page"]
 
-        await client.request(
-            "editMessageCaption",
-            {
-                "chat_id": chat_id,
-                "message_id": msg_id,
-                "caption": text,
-                "reply_markup": json.dumps(markup),
-            },
-        )
+            markup = buttons.help_markup(
+                L,
+                back=True,
+            )
+
+            await client.request(
+                "editMessageCaption",
+                {
+                    "chat_id": chat_id,
+                    "message_id": msg_id,
+                    "caption": text,
+                    "reply_markup": json.dumps(markup),
+                },
+            )
+            return
 
     except Exception as e:
 
