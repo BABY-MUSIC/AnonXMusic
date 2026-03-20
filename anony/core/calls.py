@@ -1,11 +1,29 @@
-from pytgcalls.types.input_stream import AudioPiped
+from pytgcalls import PyTgCalls
+from pytgcalls.types import AudioPiped
 from pytgcalls.exceptions import NoActiveGroupCall
 
-from anony.api.client import client
+from anony.api.client import userbot
 from anony.database import db
 
 
-calls = db.calls
+calls_db = db.calls
+
+calls = None
+
+
+# =========================
+# START CALLS
+# =========================
+
+async def start_calls():
+
+    global calls
+
+    calls = PyTgCalls(userbot)
+
+    await calls.start()
+
+    print("PyTgCalls started")
 
 
 # =========================
@@ -16,7 +34,7 @@ async def join(chat_id):
 
     try:
 
-        await client.calls.join_group_call(
+        await calls.join_group_call(
             chat_id,
             AudioPiped("silence.mp3"),
         )
@@ -25,7 +43,7 @@ async def join(chat_id):
 
         print("No active VC")
 
-    await calls.update_one(
+    await calls_db.update_one(
         {"chat_id": chat_id},
         {"$set": {"active": True}},
         upsert=True,
@@ -40,7 +58,7 @@ async def stream(chat_id, file):
 
     try:
 
-        await client.calls.change_stream(
+        await calls.change_stream(
             chat_id,
             AudioPiped(file),
         )
@@ -49,12 +67,12 @@ async def stream(chat_id, file):
 
         await join(chat_id)
 
-        await client.calls.change_stream(
+        await calls.change_stream(
             chat_id,
             AudioPiped(file),
         )
 
-    await calls.update_one(
+    await calls_db.update_one(
         {"chat_id": chat_id},
         {"$set": {"stream": file}},
         upsert=True,
@@ -68,11 +86,11 @@ async def stream(chat_id, file):
 async def leave(chat_id):
 
     try:
-        await client.calls.leave_group_call(chat_id)
+        await calls.leave_group_call(chat_id)
     except:
         pass
 
-    await calls.delete_one(
+    await calls_db.delete_one(
         {"chat_id": chat_id}
     )
 
@@ -84,7 +102,7 @@ async def leave(chat_id):
 async def pause(chat_id):
 
     try:
-        await client.calls.pause_stream(chat_id)
+        await calls.pause_stream(chat_id)
     except:
         pass
 
@@ -96,7 +114,7 @@ async def pause(chat_id):
 async def resume(chat_id):
 
     try:
-        await client.calls.resume_stream(chat_id)
+        await calls.resume_stream(chat_id)
     except:
         pass
 
@@ -108,7 +126,7 @@ async def resume(chat_id):
 async def mute(chat_id):
 
     try:
-        await client.calls.mute_stream(chat_id)
+        await calls.mute_stream(chat_id)
     except:
         pass
 
@@ -120,6 +138,6 @@ async def mute(chat_id):
 async def unmute(chat_id):
 
     try:
-        await client.calls.unmute_stream(chat_id)
+        await calls.unmute_stream(chat_id)
     except:
         pass
