@@ -132,8 +132,6 @@ async def play_cmd(message):
 
         thumb, info = await gen_thumb(vidid)
 
-        # ✅ SAFE DURATION
-
         duration = "0"
 
         if info and isinstance(info, dict):
@@ -169,7 +167,10 @@ async def play_cmd(message):
                 "photo": thumb,
                 "caption": caption,
                 "parse_mode": "HTML",
-                "reply_markup": play_buttons(),
+                "reply_markup": play_buttons(
+                    chat_id,
+                    duration,
+                ),
             },
         )
 
