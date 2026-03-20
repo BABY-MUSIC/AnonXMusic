@@ -1,32 +1,28 @@
-from anony import config
+from anony.core.queue import get, pop
+from anony.core.calls import stream, leave
 
-from anony.core.queue import (
-    get,
-    pop,
-)
-
-from anony.api.client import client
+from anony.database import db
 
 
-PLAYING = {}
+player = db.player
 
 
 # =========================
 # START PLAYER
 # =========================
 
-
 async def start_player(chat_id):
-
-    if chat_id in PLAYING:
-        return
 
     data = await get(chat_id)
 
     if not data:
         return
 
-    PLAYING[chat_id] = True
+    await player.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"playing": True}},
+        upsert=True,
+    )
 
     await play_current(chat_id)
 
@@ -35,43 +31,34 @@ async def start_player(chat_id):
 # PLAY CURRENT
 # =========================
 
-
 async def play_current(chat_id):
 
     data = await get(chat_id)
 
     if not data:
 
-        PLAYING.pop(chat_id, None)
+        await stop_player(chat_id)
 
         return
 
-    stream = data["stream"]
+    file = data["stream"]
 
     title = data["title"]
 
-    print("PLAYING:", title)
+    print("PLAY:", title)
 
-    # =========================
-    # HERE WILL BE VC STREAM
-    # =========================
+    await stream(chat_id, file)
 
-    # future:
-    # await calls.stream(chat_id, stream)
-
-    # =========================
-    # START TIMER LOOP
-    # =========================
-
-    # future timer
-
-    # await timer_loop(chat_id)
+    await player.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"current": data}},
+        upsert=True,
+    )
 
 
 # =========================
 # NEXT SONG
 # =========================
-
 
 async def next_song(chat_id):
 
@@ -81,7 +68,7 @@ async def next_song(chat_id):
 
     if not data:
 
-        PLAYING.pop(chat_id, None)
+        await stop_player(chat_id)
 
         return
 
@@ -89,24 +76,29 @@ async def next_song(chat_id):
 
 
 # =========================
-# STOP PLAYER
+# STOP
 # =========================
-
 
 async def stop_player(chat_id):
 
-    PLAYING.pop(chat_id, None)
+    await leave(chat_id)
 
-    # future leave vc
-
-    # await calls.leave(chat_id)
+    await player.delete_one(
+        {"chat_id": chat_id}
+    )
 
 
 # =========================
-# IS PLAYING
+# STATUS
 # =========================
 
+async def is_playing(chat_id):
 
-def is_playing(chat_id):
+    x = await player.find_one(
+        {"chat_id": chat_id}
+    )
 
-    return chat_id in PLAYING
+    if not x:
+        return False
+
+    return x.get("playing", False)
