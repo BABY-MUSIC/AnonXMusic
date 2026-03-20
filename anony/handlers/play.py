@@ -10,6 +10,7 @@ from anony.core.youtube import (
 from anony.core.queue import (
     add,
     get,
+    get_all,
 )
 
 from anony.core.player import start_player
@@ -84,11 +85,14 @@ async def play_cmd(message):
 
         data = await search(query)
 
-        title = data["title"]
+        if not data:
+            raise Exception("Song not found")
 
-        url = data["url"]
+        title = data.get("title") or "Unknown"
 
-        vidid = url.split("v=")[-1]
+        url = data.get("url")
+
+        vidid = url.split("v=")[-1] if url else ""
 
         # =========================
         # DOWNLOAD
@@ -96,11 +100,14 @@ async def play_cmd(message):
 
         stream = await download_song(url)
 
+        if not stream:
+            raise Exception("Download failed")
+
         # =========================
         # QUEUE ADD
         # =========================
 
-        pos = await add(
+        await add(
             chat_id,
             {
                 "title": title,
@@ -110,6 +117,10 @@ async def play_cmd(message):
                 "user": user,
             },
         )
+
+        q = await get_all(chat_id)
+
+        pos = len(q) if q else 1
 
         # ---------- queue message ----------
 
@@ -132,7 +143,10 @@ async def play_cmd(message):
 
         thumb, info = await gen_thumb(vidid)
 
-        duration = info.get("duration", "0")
+        duration = "0"
+
+        if info and isinstance(info, dict):
+            duration = info.get("duration") or "0"
 
         lang = get_string("play_media")
 
