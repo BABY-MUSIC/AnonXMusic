@@ -20,15 +20,12 @@ class TelegramClient:
         self.debug = True
 
         # bot api session
-
         self.bot = None
 
         # userbot
-
         self.user = None
 
         # pytgcalls
-
         self.calls = None
 
     # ------------------------
@@ -101,6 +98,55 @@ class TelegramClient:
             print("DATA:", data)
 
         try:
+
+            # =========================
+            # FILE REQUEST SUPPORT
+            # =========================
+
+            if data:
+
+                file_key = None
+
+                for k, v in data.items():
+                    if hasattr(v, "read"):
+                        file_key = k
+                        break
+
+                if file_key:
+
+                    file = data.pop(file_key)
+
+                    form = aiohttp.FormData()
+
+                    for k, v in data.items():
+                        form.add_field(k, str(v))
+
+                    form.add_field(
+                        file_key,
+                        file,
+                        filename="file",
+                        content_type="application/octet-stream",
+                    )
+
+                    async with self.session.post(
+                        url,
+                        data=form,
+                        timeout=60,
+                    ) as resp:
+
+                        text = await resp.text()
+
+                        if self.debug:
+                            print("RESP:", text)
+
+                        try:
+                            return json.loads(text)
+                        except:
+                            return text
+
+            # =========================
+            # NORMAL JSON REQUEST
+            # =========================
 
             async with self.session.post(
                 url,
