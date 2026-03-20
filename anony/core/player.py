@@ -1,10 +1,8 @@
 from anony.core.queue import get, pop
 from anony.core.calls import stream, leave
 
-from anony.database import db
+from anony.database import player
 
-
-player = db.player
 
 
 # =========================
