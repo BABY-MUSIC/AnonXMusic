@@ -1,6 +1,6 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 
-from anony.config import MONGO_URL
+from anony import config
 
 from .stream import init_stream
 from .player import init_player
@@ -15,7 +15,7 @@ async def init_db():
 
     global db
 
-    client = AsyncIOMotorClient(MONGO_URL)
+    client = AsyncIOMotorClient(config.MONGO_URL)
 
     db = client.anony
 
