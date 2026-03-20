@@ -2,10 +2,9 @@ from pytgcalls.types.stream.media_stream import MediaStream
 from pytgcalls.exceptions import NoActiveGroupCall
 
 from anony.api.client import client
-from anony.database import db
+from anony.database import calls
 
 
-calls = db.calls
 
 
 # =========================
