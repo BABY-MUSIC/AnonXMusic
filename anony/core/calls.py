@@ -1,3 +1,7 @@
+from pytgcalls.types.input_stream import AudioPiped
+from pytgcalls.exceptions import NoActiveGroupCall
+
+from anony.api.client import client
 from anony.database import db
 
 
@@ -10,38 +14,51 @@ calls = db.calls
 
 async def join(chat_id):
 
+    try:
+
+        await client.calls.join_group_call(
+            chat_id,
+            AudioPiped("silence.mp3"),
+        )
+
+    except NoActiveGroupCall:
+
+        print("No active VC")
+
     await calls.update_one(
         {"chat_id": chat_id},
-        {
-            "$set": {
-                "active": True
-            }
-        },
+        {"$set": {"active": True}},
         upsert=True,
     )
-
-    print("JOIN VC", chat_id)
 
 
 # =========================
 # STREAM
 # =========================
 
-async def stream(chat_id, stream):
+async def stream(chat_id, file):
 
-    await join(chat_id)
+    try:
+
+        await client.calls.change_stream(
+            chat_id,
+            AudioPiped(file),
+        )
+
+    except Exception:
+
+        await join(chat_id)
+
+        await client.calls.change_stream(
+            chat_id,
+            AudioPiped(file),
+        )
 
     await calls.update_one(
         {"chat_id": chat_id},
-        {
-            "$set": {
-                "stream": stream
-            }
-        },
+        {"$set": {"stream": file}},
         upsert=True,
     )
-
-    print("STREAM", chat_id, stream)
 
 
 # =========================
@@ -50,11 +67,14 @@ async def stream(chat_id, stream):
 
 async def leave(chat_id):
 
+    try:
+        await client.calls.leave_group_call(chat_id)
+    except:
+        pass
+
     await calls.delete_one(
         {"chat_id": chat_id}
     )
-
-    print("LEAVE", chat_id)
 
 
 # =========================
@@ -63,16 +83,10 @@ async def leave(chat_id):
 
 async def pause(chat_id):
 
-    await calls.update_one(
-        {"chat_id": chat_id},
-        {
-            "$set": {
-                "paused": True
-            }
-        },
-    )
-
-    print("PAUSE", chat_id)
+    try:
+        await client.calls.pause_stream(chat_id)
+    except:
+        pass
 
 
 # =========================
@@ -81,26 +95,31 @@ async def pause(chat_id):
 
 async def resume(chat_id):
 
-    await calls.update_one(
-        {"chat_id": chat_id},
-        {
-            "$set": {
-                "paused": False
-            }
-        },
-    )
-
-    print("RESUME", chat_id)
+    try:
+        await client.calls.resume_stream(chat_id)
+    except:
+        pass
 
 
 # =========================
-# STATUS
+# MUTE
 # =========================
 
-async def is_active(chat_id):
+async def mute(chat_id):
 
-    x = await calls.find_one(
-        {"chat_id": chat_id}
-    )
+    try:
+        await client.calls.mute_stream(chat_id)
+    except:
+        pass
 
-    return bool(x)
+
+# =========================
+# UNMUTE
+# =========================
+
+async def unmute(chat_id):
+
+    try:
+        await client.calls.unmute_stream(chat_id)
+    except:
+        pass
