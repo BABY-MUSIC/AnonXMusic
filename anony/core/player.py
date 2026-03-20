@@ -38,16 +38,23 @@ async def play_current(chat_id):
     if not data:
 
         await stop_player(chat_id)
-
         return
 
-    file = data["stream"]
-
-    title = data["title"]
+    file = data.get("stream")
+    title = data.get("title")
 
     print("PLAY:", title)
 
-    await stream(chat_id, file)
+    try:
+
+        await stream(chat_id, file)
+
+    except Exception as e:
+
+        print("STREAM ERROR:", e)
+
+        await stop_player(chat_id)
+        return
 
     await player.update_one(
         {"chat_id": chat_id},
@@ -69,7 +76,6 @@ async def next_song(chat_id):
     if not data:
 
         await stop_player(chat_id)
-
         return
 
     await play_current(chat_id)
@@ -81,7 +87,10 @@ async def next_song(chat_id):
 
 async def stop_player(chat_id):
 
-    await leave(chat_id)
+    try:
+        await leave(chat_id)
+    except:
+        pass
 
     await player.delete_one(
         {"chat_id": chat_id}
@@ -102,3 +111,19 @@ async def is_playing(chat_id):
         return False
 
     return x.get("playing", False)
+
+
+# =========================
+# GET CURRENT
+# =========================
+
+async def get_current(chat_id):
+
+    x = await player.find_one(
+        {"chat_id": chat_id}
+    )
+
+    if not x:
+        return None
+
+    return x.get("current")
