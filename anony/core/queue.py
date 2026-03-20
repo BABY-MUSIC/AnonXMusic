@@ -1,26 +1,18 @@
-from anony.database.queue import queue
+from anony.database import queue as queue_db
 
-
-# =========================
-# ADD
-# =========================
 
 async def add(chat_id, data):
 
-    await queue.update_one(
+    await queue_db.queue.update_one(
         {"chat_id": chat_id},
         {"$push": {"songs": data}},
         upsert=True,
     )
 
 
-# =========================
-# GET CURRENT
-# =========================
-
 async def get(chat_id):
 
-    x = await queue.find_one(
+    x = await queue_db.queue.find_one(
         {"chat_id": chat_id}
     )
 
@@ -35,40 +27,16 @@ async def get(chat_id):
     return songs[0]
 
 
-# =========================
-# POP
-# =========================
-
 async def pop(chat_id):
 
-    await queue.update_one(
+    await queue_db.queue.update_one(
         {"chat_id": chat_id},
         {"$pop": {"songs": -1}},
     )
 
 
-# =========================
-# GET ALL
-# =========================
-
-async def get_all(chat_id):
-
-    x = await queue.find_one(
-        {"chat_id": chat_id}
-    )
-
-    if not x:
-        return []
-
-    return x.get("songs", [])
-
-
-# =========================
-# CLEAR
-# =========================
-
 async def clear(chat_id):
 
-    await queue.delete_one(
+    await queue_db.queue.delete_one(
         {"chat_id": chat_id}
     )
