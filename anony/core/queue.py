@@ -1,7 +1,6 @@
 from anony.database import queue
 
 
-
 # =========================
 # ADD
 # =========================
@@ -37,7 +36,7 @@ async def get(chat_id):
 
 
 # =========================
-# POP FIRST
+# POP
 # =========================
 
 async def pop(chat_id):
@@ -49,7 +48,7 @@ async def pop(chat_id):
 
 
 # =========================
-# GET FULL QUEUE (optional)
+# GET ALL
 # =========================
 
 async def get_all(chat_id):
