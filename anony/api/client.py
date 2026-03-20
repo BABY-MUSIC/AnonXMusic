@@ -119,7 +119,11 @@ class TelegramClient:
                     form = aiohttp.FormData()
 
                     for k, v in data.items():
-                        form.add_field(k, str(v))
+
+                        if k == "reply_markup":
+                            form.add_field(k, json.dumps(v))
+                        else:
+                            form.add_field(k, str(v))
 
                     form.add_field(
                         file_key,
