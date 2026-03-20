@@ -1,5 +1,5 @@
 from pytgcalls import PyTgCalls
-from pytgcalls.types import AudioPiped
+from pytgcalls.types.input_stream.audio import AudioPiped
 from pytgcalls.exceptions import NoActiveGroupCall
 
 from anony.api.client import userbot
