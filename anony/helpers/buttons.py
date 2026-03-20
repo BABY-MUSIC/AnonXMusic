@@ -129,9 +129,8 @@ def help_markup(_lang, back=False):
 # =========================
 
 def play_buttons(
-    title,
-    current,
-    total,
+    duration,
+    chat_id,
 ):
 
     def btn(text, cb):
@@ -151,6 +150,10 @@ def play_buttons(
 
     bar_len = 10
 
+    current = 0
+
+    total = int(duration) if duration else 1
+
     if total == 0:
         total = 1
 
@@ -169,21 +172,21 @@ def play_buttons(
         [
             {
                 "text": timer,
-                "callback_data": "player none",
+                "callback_data": f"player none {chat_id}",
             }
         ],
 
         # controls
         [
-            btn("⏮", "player prev"),
-            btn("⏯", "player pause"),
-            btn("⏭", "player next"),
-            btn("🔇", "player mute"),
+            btn("⏮", f"player prev {chat_id}"),
+            btn("⏯", f"player pause {chat_id}"),
+            btn("⏭", f"player next {chat_id}"),
+            btn("🔈", f"player mute {chat_id}"),
         ],
 
         # close
         [
-            btn("❌ Close", "player close"),
+            btn("✖", f"player close {chat_id}"),
         ],
     ]
 
