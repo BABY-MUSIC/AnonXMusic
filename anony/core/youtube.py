@@ -1,6 +1,7 @@
 import os
 import asyncio
 import aiohttp
+
 from youtubesearchpython import VideosSearch
 
 
@@ -9,19 +10,37 @@ API_KEY = "BABYXF0C2B2F1869BAEE698C65BF3C0BA57A16"
 
 
 # =========================
-# SEARCH
+# SEARCH (PROXY BUG FIX)
 # =========================
 
 async def search(query: str):
 
-    vs = VideosSearch(query, limit=1)
+    loop = asyncio.get_event_loop()
 
-    r = vs.result()["result"]
+    def _search():
 
-    if not r:
+        vs = VideosSearch(
+            query,
+            limit=1,
+        )
+
+        # 🔥 FIX proxies bug
+        try:
+            vs._http_client.proxies = {}
+        except:
+            pass
+
+        r = vs.result().get("result", [])
+
+        if not r:
+            return None
+
+        return r[0]
+
+    data = await loop.run_in_executor(None, _search)
+
+    if not data:
         raise Exception("No result")
-
-    data = r[0]
 
     return {
         "title": data["title"],
@@ -46,6 +65,7 @@ async def _download_media(
 
     os.makedirs("downloads", exist_ok=True)
 
+    # already downloaded
     for ext in exts:
 
         path = f"downloads/{vid}.{ext}"
