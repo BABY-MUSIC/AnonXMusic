@@ -2,6 +2,11 @@ import aiohttp
 import asyncio
 import json
 
+from pyrogram import Client as PyroClient
+from pytgcalls import PyTgCalls
+
+from anony import config
+
 
 class TelegramClient:
 
@@ -14,6 +19,17 @@ class TelegramClient:
 
         self.debug = True
 
+        # bot api session
+
+        self.bot = None
+
+        # userbot
+
+        self.user = None
+
+        # pytgcalls
+
+        self.calls = None
 
     # ------------------------
 
@@ -31,9 +47,32 @@ class TelegramClient:
         self.session = aiohttp.ClientSession()
 
         if self.debug:
-            print("Client started")
-            print("API:", self.api_url)
+            print("Bot API started")
 
+        # =========================
+        # USERBOT START
+        # =========================
+
+        self.user = PyroClient(
+            "assistant",
+            api_id=config.API_ID,
+            api_hash=config.API_HASH,
+            session_string=config.SESSION,
+        )
+
+        await self.user.start()
+
+        print("Assistant started")
+
+        # =========================
+        # PYTGCALLS
+        # =========================
+
+        self.calls = PyTgCalls(self.user)
+
+        await self.calls.start()
+
+        print("PyTgCalls started")
 
     # ------------------------
 
@@ -42,9 +81,14 @@ class TelegramClient:
         if self.session:
             await self.session.close()
 
+        if self.user:
+            await self.user.stop()
+
+        if self.calls:
+            await self.calls.stop()
+
         if self.debug:
             print("Client stopped")
-
 
     # ------------------------
 
