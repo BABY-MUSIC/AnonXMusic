@@ -4,7 +4,6 @@ import os
 lang = {}
 
 p = os.path.dirname(__file__)
-
 f = os.path.join(p, "en.json")
 
 if os.path.exists(f):
@@ -15,6 +14,6 @@ if os.path.exists(f):
 # GET STRING
 # =========================
 
-def get_string(key):
+async def get_string(key):
 
     return lang.get(key, key)
