@@ -122,3 +122,69 @@ def help_markup(_lang, back=False):
     )
 
     return build(rows)
+
+
+# =========================
+# PLAYER MARKUP
+# =========================
+
+def play_buttons(
+    title,
+    current,
+    total,
+):
+
+    def btn(text, cb):
+
+        return {
+            "text": text,
+            "callback_data": cb,
+        }
+
+    def build(rows):
+
+        return {
+            "inline_keyboard": rows
+        }
+
+    # ---------- TIMER BAR ----------
+
+    bar_len = 10
+
+    if total == 0:
+        total = 1
+
+    pos = int((current / total) * bar_len)
+
+    bar = "━" * pos + "●" + "─" * (bar_len - pos)
+
+    timer = f"{current}s {bar} {total}s"
+
+
+    # ---------- BUTTONS ----------
+
+    rows = [
+
+        # timer row
+        [
+            {
+                "text": timer,
+                "callback_data": "player none",
+            }
+        ],
+
+        # controls
+        [
+            btn("⏮", "player prev"),
+            btn("⏯", "player pause"),
+            btn("⏭", "player next"),
+            btn("🔇", "player mute"),
+        ],
+
+        # close
+        [
+            btn("❌ Close", "player close"),
+        ],
+    ]
+
+    return build(rows)
