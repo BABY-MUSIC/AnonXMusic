@@ -2,7 +2,7 @@ import os
 import asyncio
 import aiohttp
 
-from youtubesearchpython import VideosSearch
+from py_yt import VideosSearch
 
 
 BASE_URL = "https://www.babyapi.pro"
@@ -10,44 +10,33 @@ API_KEY = "BABYXF0C2B2F1869BAEE698C65BF3C0BA57A16"
 
 
 # =========================
-# SEARCH (PROXY BUG FIX)
+# SEARCH (py_yt)
 # =========================
 
 async def search(query: str):
 
-    loop = asyncio.get_event_loop()
+    try:
 
-    def _search():
+        s = VideosSearch(query, limit=1)
 
-        vs = VideosSearch(
-            query,
-            limit=1,
-        )
+        data = await s.next()
 
-        # 🔥 FIX proxies bug
-        try:
-            vs._http_client.proxies = {}
-        except:
-            pass
+        if not data or not data.get("result"):
+            raise Exception("No result")
 
-        r = vs.result().get("result", [])
+        v = data["result"][0]
 
-        if not r:
-            return None
+        return {
+            "title": v.get("title"),
+            "url": f"https://youtube.com/watch?v={v.get('id')}",
+            "duration": v.get("duration"),
+            "thumb": v["thumbnails"][0]["url"]
+            if v.get("thumbnails")
+            else "",
+        }
 
-        return r[0]
-
-    data = await loop.run_in_executor(None, _search)
-
-    if not data:
-        raise Exception("No result")
-
-    return {
-        "title": data["title"],
-        "url": data["link"],
-        "duration": data.get("duration"),
-        "thumb": data["thumbnails"][0]["url"],
-    }
+    except Exception as e:
+        raise Exception(f"Search failed: {e}")
 
 
 # =========================
@@ -65,7 +54,6 @@ async def _download_media(
 
     os.makedirs("downloads", exist_ok=True)
 
-    # already downloaded
     for ext in exts:
 
         path = f"downloads/{vid}.{ext}"
@@ -85,13 +73,10 @@ async def _download_media(
         media_type = res.get("type")
 
         if not stream:
-            raise Exception(f"{kind} stream not found")
+            raise Exception("stream not found")
 
-        # live stream
         if media_type == "live":
             return stream
-
-        # wait until ready
 
         for _ in range(wait):
 
@@ -106,13 +91,11 @@ async def _download_media(
 
                 if r.status in (401, 403, 429):
                     txt = await r.text()
-                    raise Exception(
-                        f"{kind} blocked {r.status}: {txt[:100]}"
-                    )
+                    raise Exception(txt[:100])
 
-                raise Exception(f"{kind} failed ({r.status})")
+                raise Exception(f"status {r.status}")
 
-        raise Exception(f"{kind} timeout")
+        raise Exception("timeout")
 
 
 # =========================
@@ -125,7 +108,7 @@ async def download_song(link: str):
         link,
         "song",
         ["mp3", "m4a", "webm"],
-        wait=60,
+        60,
     )
 
 
@@ -139,5 +122,5 @@ async def download_video(link: str):
         link,
         "video",
         ["mp4", "webm", "mkv"],
-        wait=90,
+        90,
     )
