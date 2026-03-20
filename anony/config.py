@@ -28,7 +28,7 @@ class Config:
         self.PLAYLIST_LIMIT = int(getenv("PLAYLIST_LIMIT", 20))
 
         self.SESSION1 = getenv(
-            "SESSION",
+            "SESSION1",
             "BQD7IGgACVw-28t6ixkUCWR5qa8-TVvmTNYuj7cWHnd9iuxKxlRCCkVvUdzwOLFtEeN7nEL-HYd79OBH22BUh4JfnIGUHrQz0XJy0iHZ-RUBH6VkcX5y8J13Z66AdQmk8pT3keKDfGHPDQUoWkbo6Q3rA0KdsAfwEm9qIXiqO24mn4vT5tM5bXUpu9HWkevmfFWUsVLNIwaJik8JG4RHZ9Bqh4G7Y9LEFG6Q4oci-mdh0195zEDNx5ygYS6UogThHkgvI31rIqWFDqzEJlrZcXwM2tbyOFcLZXI6nlhQV_V_M8MHX4pWAAIcrL3AztO2LZr5XjeXSxzerUIdl5cw2v6jv4w18gAAAAH5tqCaAA",
         )
 
