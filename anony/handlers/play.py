@@ -1,4 +1,5 @@
 from anony import config
+
 from anony.api.client import client
 
 from anony.core.youtube import (
@@ -6,19 +7,32 @@ from anony.core.youtube import (
     download_song,
 )
 
+from anony.core.queue import (
+    add,
+    get,
+)
+
+from anony.core.player import start_player
+
+from anony.core.thumbs import gen_thumb
+
+from anony.helpers.buttons import play_buttons
+
+from anony.lang import get_string
+
 
 # =========================
 # PLAY COMMAND
 # =========================
 
-async def play_cmd(message):
 
-    if config.DEBUG:
-        print("\n=== PLAY CMD ===")
+async def play_cmd(message):
 
     try:
 
         chat_id = message["chat"]["id"]
+
+        user = message["from"]["first_name"]
 
         text = message.get("text", "")
 
@@ -26,24 +40,20 @@ async def play_cmd(message):
 
         query = None
 
-        # ---------- ARG ----------
+        # ---------- arg ----------
 
         if len(args) > 1:
             query = args[1]
 
-        # ---------- REPLY ----------
+        # ---------- reply ----------
 
         if not query and "reply_to_message" in message:
 
             r = message["reply_to_message"]
 
-            if "text" in r:
-                query = r["text"]
+            query = r.get("text") or r.get("caption")
 
-            if "caption" in r:
-                query = r["caption"]
-
-        # ---------- EMPTY ----------
+        # ---------- empty ----------
 
         if not query:
 
@@ -56,10 +66,7 @@ async def play_cmd(message):
             )
             return
 
-        if config.DEBUG:
-            print("Query:", query)
-
-        # ---------- LOADING ----------
+        # ---------- loading ----------
 
         msg = await client.request(
             "sendMessage",
@@ -77,11 +84,11 @@ async def play_cmd(message):
 
         data = await search(query)
 
-        title = data.get("title")
-        url = data.get("url")
+        title = data["title"]
 
-        if config.DEBUG:
-            print("FOUND:", title)
+        url = data["url"]
+
+        vidid = url.split("v=")[-1]
 
         # =========================
         # DOWNLOAD
@@ -89,21 +96,87 @@ async def play_cmd(message):
 
         stream = await download_song(url)
 
-        if config.DEBUG:
-            print("STREAM:", stream)
+        # =========================
+        # QUEUE ADD
+        # =========================
+
+        pos = await add(
+            chat_id,
+            {
+                "title": title,
+                "url": url,
+                "stream": stream,
+                "vidid": vidid,
+                "user": user,
+            },
+        )
+
+        # ---------- queue message ----------
+
+        if pos > 1:
+
+            await client.request(
+                "editMessageText",
+                {
+                    "chat_id": chat_id,
+                    "message_id": msg_id,
+                    "text": f"Added to queue #{pos}\n\n{title}",
+                },
+            )
+
+            return
 
         # =========================
-        # RESULT
+        # FIRST SONG
         # =========================
+
+        thumb, info = await gen_thumb(vidid)
+
+        duration = info.get("duration", "0")
+
+        lang = get_string("play_media")
+
+        caption = lang.format(
+            url,
+            title,
+            duration,
+            user,
+        )
+
+        caption += "\n<b>Made by:</b> @YourChannel"
+
+        # delete loading
 
         await client.request(
-            "editMessageText",
+            "deleteMessage",
             {
                 "chat_id": chat_id,
                 "message_id": msg_id,
-                "text": f"Added to queue\n\n{title}",
             },
         )
+
+        # send player message
+
+        sent = await client.request(
+            "sendPhoto",
+            {
+                "chat_id": chat_id,
+                "photo": thumb,
+                "caption": caption,
+                "parse_mode": "HTML",
+                "reply_markup": play_buttons(),
+            },
+        )
+
+        player_msg = sent["result"]["message_id"]
+
+        config.PLAYER_MSG[chat_id] = player_msg
+
+        # =========================
+        # START PLAYER
+        # =========================
+
+        await start_player(chat_id)
 
     except Exception as e:
 
@@ -113,6 +186,6 @@ async def play_cmd(message):
             "sendMessage",
             {
                 "chat_id": chat_id,
-                "text": f"Error:\n{e}",
+                "text": str(e),
             },
         )
