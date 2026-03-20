@@ -1,21 +1,75 @@
-QUEUE = {}
+from anony.database import queue
 
 
-def add(chat_id, data):
 
-    if chat_id not in QUEUE:
-        QUEUE[chat_id] = []
+# =========================
+# ADD
+# =========================
 
-    QUEUE[chat_id].append(data)
+async def add(chat_id, data):
+
+    await queue.update_one(
+        {"chat_id": chat_id},
+        {"$push": {"songs": data}},
+        upsert=True,
+    )
 
 
-def get(chat_id):
+# =========================
+# GET CURRENT
+# =========================
 
-    return QUEUE.get(chat_id, [])
+async def get(chat_id):
+
+    x = await queue.find_one(
+        {"chat_id": chat_id}
+    )
+
+    if not x:
+        return None
+
+    songs = x.get("songs", [])
+
+    if not songs:
+        return None
+
+    return songs[0]
 
 
-def pop(chat_id):
+# =========================
+# POP FIRST
+# =========================
 
-    if chat_id in QUEUE and QUEUE[chat_id]:
+async def pop(chat_id):
 
-        return QUEUE[chat_id].pop(0)
+    await queue.update_one(
+        {"chat_id": chat_id},
+        {"$pop": {"songs": -1}},
+    )
+
+
+# =========================
+# GET FULL QUEUE (optional)
+# =========================
+
+async def get_all(chat_id):
+
+    x = await queue.find_one(
+        {"chat_id": chat_id}
+    )
+
+    if not x:
+        return []
+
+    return x.get("songs", [])
+
+
+# =========================
+# CLEAR
+# =========================
+
+async def clear(chat_id):
+
+    await queue.delete_one(
+        {"chat_id": chat_id}
+    )
