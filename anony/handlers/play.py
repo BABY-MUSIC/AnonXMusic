@@ -139,7 +139,7 @@ async def play_cmd(message):
         if info and isinstance(info, dict):
             duration = info.get("duration") or "0"
 
-        lang = get_string("play_media")
+        lang = await get_string("play_media")
 
         caption = lang.format(
             url,
