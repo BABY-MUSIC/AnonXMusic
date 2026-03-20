@@ -1,4 +1,4 @@
-from anony.database import queue
+from anony.database.queue import queue
 
 
 # =========================
