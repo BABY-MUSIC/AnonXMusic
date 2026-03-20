@@ -1,5 +1,7 @@
 import os
 import aiohttp
+from io import BytesIO
+
 from PIL import Image, ImageDraw
 
 from py_yt import VideosSearch
@@ -28,8 +30,6 @@ async def get_video_data(vidid: str):
 
 async def gen_thumb(vidid: str):
 
-    os.makedirs("thumbs", exist_ok=True)
-
     info = await get_video_data(vidid)
 
     title = info.get("title", "Unknown")
@@ -38,16 +38,15 @@ async def gen_thumb(vidid: str):
     if not thumb_url:
         return None, info
 
+    # download thumb
+
     async with aiohttp.ClientSession() as s:
         async with s.get(thumb_url) as r:
             data = await r.read()
 
-    base = "thumbs/base.jpg"
+    # open image
 
-    with open(base, "wb") as f:
-        f.write(data)
-
-    img = Image.open(base).convert("RGB")
+    img = Image.open(BytesIO(data)).convert("RGB")
     img = img.resize((1280, 720))
 
     draw = ImageDraw.Draw(img)
@@ -58,8 +57,13 @@ async def gen_thumb(vidid: str):
         fill="white",
     )
 
-    out = "thumbs/out.png"
+    # save to buffer instead of file
 
-    img.save(out)
+    buffer = BytesIO()
+    buffer.name = "thumb.png"
 
-    return out, info
+    img.save(buffer, format="PNG")
+
+    buffer.seek(0)
+
+    return buffer, info
